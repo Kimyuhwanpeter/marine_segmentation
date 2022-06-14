@@ -363,7 +363,7 @@ def main():
                 final_output = tf.where(final_output == 2, 1, 0)
                 final_output = tf.where(final_output == 0, 1, 0).numpy()
 
-                batch_label = tf.cast(batch_labels[j, :, :, 0], tf.uint8).numpy()
+                batch_label = tf.cast(batch_labels[0, :, :, 0], tf.uint8).numpy()
                 batch_label = np.where(batch_label == 0, 1, 0)
                 batch_label = np.array(batch_label, np.int32)
 
@@ -411,7 +411,7 @@ def main():
                 final_output = tf.where(final_output == 2, 1, 0)
                 final_output = tf.where(final_output == 0, 1, 0).numpy()
 
-                batch_label = tf.cast(batch_labels[j, :, :, 0], tf.uint8).numpy()
+                batch_label = tf.cast(batch_labels[0, :, :, 0], tf.uint8).numpy()
                 batch_label = np.where(batch_label == 0, 1, 0)
                 batch_label = np.array(batch_label, np.int32)
 
