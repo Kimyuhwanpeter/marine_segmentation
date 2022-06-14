@@ -30,11 +30,11 @@ FLAGS = easydict.EasyDict({"img_size": 512,
                            
                            "epochs": 400,
 
-                           "total_classes": 3,
+                           "total_classes": 2,
 
                            "ignore_label": 0,
 
-                           "batch_size": 4,
+                           "batch_size": 2,
 
                            "sample_images": "/yuhwan/yuhwan/checkpoint/Segmenation/MTS_CNN_related/BoniRob_v1_DSLR/sample_images",
 
@@ -241,7 +241,7 @@ def main():
                 for i in range(FLAGS.batch_size):
                     class_imbal_label = class_imbal_labels[i]
                     class_imbal_label = np.reshape(class_imbal_label, [FLAGS.img_size*FLAGS.img_size, ])
-                    count_c_i_lab = np.bincount(class_imbal_label, minlength=2)
+                    count_c_i_lab = np.bincount(class_imbal_label, minlength=FLAGS.total_classes)
                     class_imbal_labels_buf += count_c_i_lab
 
                 bin = class_imbal_labels_buf
