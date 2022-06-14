@@ -200,4 +200,46 @@ def parallel_Unet(input_shape=(512, 512, 3), nclasses=1):
     background_output = tf.keras.layers.Conv2D(filters=nclasses, kernel_size=3, padding="same")(center_block_conv6)
     object_output = tf.keras.layers.Conv2D(filters=nclasses, kernel_size=3, padding="same")(center_block_conv6_f)
 
-    return tf.keras.Model(inputs=inputs, outputs=[background_output, object_output])
+    model = tf.keras.Model(inputs=inputs, outputs=[background_output, object_output])
+    
+    backbone = tf.keras.applications.vgg16.VGG16(input_shape=(224, 224, 3))
+    
+    model.get_layer('block1_conv1').set_weights(backbone.get_layer('block1_conv1').get_weights())
+    model.get_layer('block1_conv1_f').set_weights(backbone.get_layer('block1_conv1').get_weights())
+
+    model.get_layer('block1_conv2').set_weights(backbone.get_layer('block1_conv2').get_weights())
+    model.get_layer('block1_conv2_f').set_weights(backbone.get_layer('block1_conv2').get_weights())
+    
+    model.get_layer('block2_conv1').set_weights(backbone.get_layer('block2_conv1').get_weights())
+    model.get_layer('block2_conv1_f').set_weights(backbone.get_layer('block2_conv1').get_weights())
+    
+    model.get_layer('block2_conv2').set_weights(backbone.get_layer('block2_conv2').get_weights())
+    model.get_layer('block2_conv2_f').set_weights(backbone.get_layer('block2_conv2').get_weights())
+    
+    model.get_layer('block3_conv1').set_weights(backbone.get_layer('block3_conv1').get_weights())
+    model.get_layer('block3_conv1_f').set_weights(backbone.get_layer('block3_conv1').get_weights())
+    
+    model.get_layer('block3_conv2').set_weights(backbone.get_layer('block3_conv2').get_weights())
+    model.get_layer('block3_conv2_f').set_weights(backbone.get_layer('block3_conv2').get_weights())
+    
+    model.get_layer('block3_conv3').set_weights(backbone.get_layer('block3_conv3').get_weights())
+    model.get_layer('block3_conv3_f').set_weights(backbone.get_layer('block3_conv3').get_weights())
+    
+    model.get_layer('block4_conv1').set_weights(backbone.get_layer('block4_conv1').get_weights())
+    model.get_layer('block4_conv1_f').set_weights(backbone.get_layer('block4_conv1').get_weights())
+    
+    model.get_layer('block4_conv2').set_weights(backbone.get_layer('block4_conv2').get_weights())
+    model.get_layer('block4_conv2_f').set_weights(backbone.get_layer('block4_conv2').get_weights())
+    
+    model.get_layer('block4_conv3').set_weights(backbone.get_layer('block4_conv3').get_weights())
+    model.get_layer('block4_conv3_f').set_weights(backbone.get_layer('block4_conv3').get_weights())
+    
+    model.get_layer('block5_conv1').set_weights(backbone.get_layer('block5_conv1').get_weights())
+    model.get_layer('block5_conv1_f').set_weights(backbone.get_layer('block5_conv1').get_weights())
+    
+    model.get_layer('block5_conv2').set_weights(backbone.get_layer('block5_conv2').get_weights())
+    model.get_layer('block5_conv2_f').set_weights(backbone.get_layer('block5_conv2').get_weights())
+    
+    model.get_layer('block5_conv3').set_weights(backbone.get_layer('block5_conv3').get_weights())
+    model.get_layer('block5_conv3_f').set_weights(backbone.get_layer('block5_conv3').get_weights())
+    return model
