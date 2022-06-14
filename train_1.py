@@ -10,15 +10,15 @@ import os
 
 FLAGS = easydict.EasyDict({"img_size": 512,
 
-                           "train_txt_path": "D:/[1]DB/[5]4th_paper_DB/MAS3K/MAS3K/All/train.txt",
+                           "train_txt_path": "/yuhwan/yuhwan/Dataset/Segmentation/marine/train.txt",
 
-                           "val_txt_path": "D:/[1]DB/[5]4th_paper_DB/MAS3K/MAS3K/All/val.txt",
+                           "val_txt_path": "/yuhwan/yuhwan/Dataset/Segmentation/marine/val.txt",
 
-                           "test_txt_path": "D:/[1]DB/[5]4th_paper_DB/MAS3K/MAS3K/All/test.txt",
+                           "test_txt_path": "/yuhwan/yuhwan/Dataset/Segmentation/marine/test.txt",
                            
-                           "label_path": "D:/[1]DB/[5]4th_paper_DB/MAS3K/MAS3K/All/masks/",
+                           "label_path": "/yuhwan/yuhwan/Dataset/Segmentation/marine/masks/",
                            
-                           "image_path": "D:/[1]DB/[5]4th_paper_DB/MAS3K/MAS3K/All/images/",
+                           "image_path": "/yuhwan/yuhwan/Dataset/Segmentation/marine/images/",
                            
                            "pre_checkpoint": False,
                            
@@ -36,11 +36,11 @@ FLAGS = easydict.EasyDict({"img_size": 512,
 
                            "batch_size": 4,
 
-                           "sample_images": "/yuhwan/yuhwan/checkpoint/Segmenation/MTS_CNN_related/BoniRob_v1_DSLR/sample_images",
+                           "sample_images": "/yuhwan/yuhwan/checkpoint/Segmenation/6th_paper/Apple_A/sample_images",
 
-                           "save_checkpoint": "/yuhwan/yuhwan/checkpoint/Segmenation/MTS_CNN_related/BoniRob_v1_DSLR/checkpoint",
+                           "save_checkpoint": "/yuhwan/yuhwan/checkpoint/Segmenation/6th_paper/Apple_A/checkpoint",
 
-                           "save_print": "/yuhwan/yuhwan/checkpoint/Segmenation/MTS_CNN_related/BoniRob_v1_DSLR/train_out.txt",
+                           "save_print": "/yuhwan/yuhwan/checkpoint/Segmenation/6th_paper/Apple_A/train_out.txt",
 
                            "train_loss_graphs": "/yuwhan/Edisk/yuwhan/Edisk/Segmentation/V2/BoniRob/train_loss.txt",
 
@@ -337,7 +337,7 @@ def main():
             for i in range(len(val_img_dataset)):
                 batch_images, batch_labels = next(val_iter)
                 batch_labels = tf.where(batch_labels == 255, 1, batch_labels).numpy()
-                background_logits, object_logits = run_model(model, batch_image, False)
+                background_logits, object_logits = run_model(model, batch_images, False)
                 temp_background_logits = tf.nn.sigmoid(object_logits) * background_logits
                 temp_object_logits = tf.nn.sigmoid(background_logits) * object_logits
                 background_logits = tf.nn.sigmoid(background_logits[0, :, :, 0])
@@ -385,7 +385,7 @@ def main():
             for i in range(len(test_img_dataset)):
                 batch_images, batch_labels = next(test_iter)
                 batch_labels = tf.where(batch_labels == 255, 1, batch_labels).numpy()
-                background_logits, object_logits = run_model(model, batch_image, False)
+                background_logits, object_logits = run_model(model, batch_images, False)
                 temp_background_logits = tf.nn.sigmoid(object_logits) * background_logits
                 temp_object_logits = tf.nn.sigmoid(background_logits) * object_logits
                 background_logits = tf.nn.sigmoid(background_logits[0, :, :, 0])
