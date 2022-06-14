@@ -2,6 +2,7 @@
 from model_1 import *
 from random import shuffle, random
 from Cal_measurement import *
+from model_profiler import model_profiler
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -107,7 +108,7 @@ def test_func(image_list, label_list):
 
     return img, lab
 
-@tf.function
+# @tf.function
 def run_model(model, images, training=True):
     return model(images, training=training)
 
@@ -128,6 +129,18 @@ def tversky_loss(y_true, y_pred, alpha):
 
     # TP/(TP + a*FN + b*FP); a+b = 1
     coef_val = (true_pos + 1)/(true_pos + alpha*false_neg + (1-alpha)*false_pos + 1)
+
+    return 1 - coef_val
+
+def reverse_tversky_loss_v2(y_true, y_pred, alpha):
+    
+    # get true pos (TP), false neg (FN), false pos (FP).
+    true_neg  = tf.keras.backend.sum((1-y_true) * (1-y_pred))
+    false_neg = tf.keras.backend.sum(y_true * (1-y_pred))
+    false_pos = tf.keras.backend.sum((1-y_true) * y_pred)
+
+    # TP/(TP + a*FN + b*FP); a+b = 1
+    coef_val = (true_neg + 1)/(true_neg + alpha*false_neg + (1-alpha)*false_pos + 1)
 
     return 1 - coef_val
 
@@ -159,7 +172,7 @@ def cal_loss(model, images, labels, object_buf, bin):
 
         m = max(object_buf[0], object_buf[1])
         if bin[0] != 0 and bin[1] != 0:
-            background_loss = tversky_loss(batch_labels, b_logits, 1.- m)
+            background_loss = reverse_tversky_loss_v2(batch_labels, b_logits, 1.- m)
             object_loss = tversky_loss(batch_labels, o_logits, m)
             total_loss = background_loss + object_loss
 
