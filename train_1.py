@@ -190,7 +190,7 @@ def main():
     
     if FLAGS.train:
         count = 0
-        #output_text = open(FLAGS.save_print, "w")
+        output_text = open(FLAGS.save_print, "w")
         
         train_list = np.loadtxt(FLAGS.train_txt_path, dtype="<U200", skiprows=0, usecols=0)
         val_list = np.loadtxt(FLAGS.val_txt_path, dtype="<U200", skiprows=0, usecols=0)
