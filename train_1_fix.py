@@ -11,15 +11,15 @@ import os
 
 FLAGS = easydict.EasyDict({"img_size": 352,
 
-                           "train_txt_path": "/yuhwan/yuhwan/Dataset/Segmentation/marine/train.txt",
+                           "train_txt_path": "/content/train.txt",
 
-                           "val_txt_path": "/yuhwan/yuhwan/Dataset/Segmentation/marine/val.txt",
+                           "val_txt_path": "/content/val.txt",
 
-                           "test_txt_path": "/yuhwan/yuhwan/Dataset/Segmentation/marine/test.txt",
+                           "test_txt_path": "/content/test.txt",
                            
-                           "label_path": "/yuhwan/yuhwan/Dataset/Segmentation/marine/masks/",
+                           "label_path": "/content/masks/",
                            
-                           "image_path": "/yuhwan/yuhwan/Dataset/Segmentation/marine/images/",
+                           "image_path": "/content/images/",
                            
                            "pre_checkpoint": False,
                            
@@ -37,11 +37,11 @@ FLAGS = easydict.EasyDict({"img_size": 352,
 
                            "batch_size": 12,
 
-                           "sample_images": "/yuhwan/yuhwan/checkpoint/Segmenation/6th_paper/Apple_A/sample_images",
+                           "sample_images": "/content/drive/MyDrive/6th_paper/sample_images",
 
-                           "save_checkpoint": "/yuhwan/yuhwan/checkpoint/Segmenation/6th_paper/Apple_A/checkpoint",
+                           "save_checkpoint": "/content/drive/MyDrive/6th_paper/checkpoint",
 
-                           "save_print": "/yuhwan/yuhwan/checkpoint/Segmenation/6th_paper/Apple_A/train_out.txt",
+                           "save_print": "/content/drive/MyDrive/6th_paper/train_out.txt",
 
                            "train_loss_graphs": "/yuwhan/Edisk/yuwhan/Edisk/Segmentation/V2/BoniRob/train_loss.txt",
 
@@ -210,7 +210,7 @@ def structure_loss(y_true, y_pred, alpha):
     denominator = 1+5*tf.abs(tf.keras.layers.AvgPool2D((31, 31), strides=1, padding="same")(tf.cast(y_true, tf.float32)) - tf.cast(y_true, tf.float32))
     denominator = tf.squeeze(denominator, -1)
     #numerator = tf.keras.losses.BinaryCrossentropy(from_logits=True, reduction=tf.keras.losses.Reduction.NONE)(y_true, y_pred)
-    numerator = binary_focal_loss(alpha=alpha)(y_true, y_pred)
+    numerator = binary_focal_loss(alpha=alpha)(y_true, tf.nn.sigmoid(y_pred))
     numerator = tf.squeeze(numerator, -1)
     loss = tf.math.divide(tf.reduce_sum(denominator * numerator, [1, 2]), tf.reduce_sum(denominator, [1,2]))
 
