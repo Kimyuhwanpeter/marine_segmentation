@@ -173,12 +173,45 @@ def false_dice_loss(y_true, y_pred):
 
     return 1 - tf.math.divide(numerator, denominator)
 
-def structure_loss(y_true, y_pred):
+def binary_focal_loss(gamma=2., alpha=.25):
+    """
+    Binary form of focal loss.
+      FL(p_t) = -alpha * (1 - p_t)**gamma * log(p_t)
+      where p = sigmoid(x), p_t = p or 1 - p depending on if the label is 1 or 0, respectively.
+    References:
+        https://arxiv.org/pdf/1708.02002.pdf
+    Usage:
+     model.compile(loss=[binary_focal_loss(alpha=.25, gamma=2)], metrics=["accuracy"], optimizer=adam)
+    """
+    def binary_focal_loss_fixed(y_true, y_pred):
+        """
+        :param y_true: A tensor of the same shape as `y_pred`
+        :param y_pred:  A tensor resulting from a sigmoid
+        :return: Output tensor.
+        """
+        pt_1 = tf.where(tf.equal(y_true, 1), y_pred, tf.ones_like(y_pred))
+        pt_0 = tf.where(tf.equal(y_true, 0), y_pred, tf.zeros_like(y_pred))
+
+        epsilon = tf.keras.backend.epsilon()
+        # clip to prevent NaN's and Inf's
+        pt_1 = tf.keras.backend.clip(pt_1, epsilon, 1. - epsilon)
+        pt_0 = tf.keras.backend.clip(pt_0, epsilon, 1. - epsilon)
+
+        return -((alpha * tf.math.pow(1. - pt_1, gamma) * tf.math.log(pt_1)) \
+               + ((1 - alpha) * tf.math.pow(pt_0, gamma) * tf.math.log(1. - pt_0)))
+        # return -tf.keras.backend.sum(alpha * tf.math.pow(1. - pt_1, gamma) * tf.math.log(pt_1)) \
+        #        -tf.keras.backend.sum((1 - alpha) * tf.math.pow(pt_0, gamma) * tf.math.log(1. - pt_0))
+
+    return binary_focal_loss_fixed
+
+def structure_loss(y_true, y_pred, alpha):
 
     y_true = tf.expand_dims(y_true, -1)
     denominator = 1+5*tf.abs(tf.keras.layers.AvgPool2D((31, 31), strides=1, padding="same")(tf.cast(y_true, tf.float32)) - tf.cast(y_true, tf.float32))
     denominator = tf.squeeze(denominator, -1)
-    numerator = tf.keras.losses.BinaryCrossentropy(from_logits=True, reduction=tf.keras.losses.Reduction.NONE)(y_true, y_pred)
+    #numerator = tf.keras.losses.BinaryCrossentropy(from_logits=True, reduction=tf.keras.losses.Reduction.NONE)(y_true, y_pred)
+    numerator = binary_focal_loss(alpha=alpha)(y_true, y_pred)
+    numerator = tf.squeeze(numerator, -1)
     loss = tf.math.divide(tf.reduce_sum(denominator * numerator, [1, 2]), tf.reduce_sum(denominator, [1,2]))
 
     pred = tf.nn.sigmoid(y_pred)
@@ -188,6 +221,30 @@ def structure_loss(y_true, y_pred):
     wiou = tf.squeeze(wiou, -1)
 
     return tf.reduce_mean(loss+wiou)
+
+def consistency_enhanced_foreground_loss(y_true, y_pred):
+
+    y_true = tf.expand_dims(y_true, -1)
+    true = tf.cast(y_true, tf.float32)
+    pred = tf.nn.sigmoid(y_pred)
+    numerator = tf.reduce_sum((true + pred) - 2*(true * pred), [1, 2])
+    denominator = tf.reduce_sum((true + pred) + tf.keras.backend.epsilon(), [1,2])
+    loss = tf.math.divide(numerator, denominator)
+    loss = tf.squeeze(loss, -1)
+
+    return tf.reduce_mean(loss)
+
+def consistency_enhanced_background_loss(y_true, y_pred):
+
+    y_true = tf.expand_dims(y_true, -1)
+    true = 1. - tf.cast(y_true, tf.float32)
+    pred = 1. - tf.nn.sigmoid(y_pred)
+    numerator = tf.reduce_sum((true + pred) - 2*(true * pred), [1,2])
+    denominator = tf.reduce_sum((true + pred) + tf.keras.backend.epsilon(), [1,2])
+    loss = tf.math.divide(numerator, denominator)
+    loss = tf.squeeze(loss, -1)
+
+    return tf.reduce_mean(loss)
 
 def cal_loss(model, images, labels, object_buf, bin):
     
@@ -199,18 +256,26 @@ def cal_loss(model, images, labels, object_buf, bin):
         temp_object_logits = tf.nn.sigmoid(background_logits) * object_logits
         object_logits = temp_object_logits
         background_logits = temp_background_logits
-        b_logits = tf.reshape(background_logits, [-1, ])
-        o_logits = tf.reshape(object_logits, [-1, ])
 
         m = max(object_buf[0], object_buf[1])
         if bin[0] != 0 and bin[1] != 0:
-            background_loss = structure_loss(labels, background_logits) + false_dice_loss(batch_labels, b_logits)
-            object_loss = structure_loss(labels, object_logits) + true_dice_loss(batch_labels, o_logits)
+            if object_buf[0] > object_buf[1]:
+                back_alpha = object_buf[1]
+                object_alpha = object_buf[0]
+            else:
+                back_alpha = object_buf[0]
+                object_alpha = object_buf[1]
+            background_loss = structure_loss(labels, background_logits, back_alpha) + back_alpha*consistency_enhanced_background_loss(labels, background_logits)
+            object_loss = structure_loss(labels, object_logits, object_alpha) + object_alpha*consistency_enhanced_foreground_loss(labels, object_logits)
 
             total_loss = background_loss + object_loss
 
         if bin[0] != 0 and bin[1] == 0:
-            background_loss = structure_loss(labels, background_logits) + false_dice_loss(batch_labels, b_logits)
+            if object_buf[0] > object_buf[1]:
+                back_alpha = object_buf[1]
+            else:
+                back_alpha = object_buf[0]
+            background_loss = structure_loss(labels, background_logits, back_alpha) + back_alpha*consistency_enhanced_background_loss(labels, background_logits) 
             total_loss = background_loss
         
     grads = tape.gradient(total_loss, model.trainable_variables)
