@@ -9,7 +9,7 @@ import numpy as np
 import easydict
 import os
 
-FLAGS = easydict.EasyDict({"img_size": 512,
+FLAGS = easydict.EasyDict({"img_size": 352,
 
                            "train_txt_path": "/yuhwan/yuhwan/Dataset/Segmentation/marine/train.txt",
 
@@ -35,7 +35,7 @@ FLAGS = easydict.EasyDict({"img_size": 512,
 
                            "ignore_label": 0,
 
-                           "batch_size": 4,
+                           "batch_size": 12,
 
                            "sample_images": "/yuhwan/yuhwan/checkpoint/Segmenation/6th_paper/Apple_A/sample_images",
 
