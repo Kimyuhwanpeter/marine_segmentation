@@ -292,7 +292,13 @@ def main():
                 count +=1
 
             tr_iter = iter(train_ge)
+            iou = 0.
+            precision_ = 0.
+            recall_ = 0.
+            f1_score_ = 0.
+            C = 0.
             cm = 0.
+            miou = 0.
             for i in range(tr_idx):
                 batch_images, _, batch_labels = next(tr_iter)
                 batch_labels = tf.where(batch_labels == 255, 1, batch_labels).numpy()
@@ -315,21 +321,33 @@ def main():
                     batch_label = np.where(batch_label == 0, 1, 0)
                     batch_label = np.array(batch_label, np.int32)
 
-                    cm_ = Measurement(predict=final_output,
-                                        label=batch_label, 
-                                        shape=[FLAGS.img_size*FLAGS.img_size, ], 
-                                        total_classes=2).MIOU()
+                    a = np.bincount(np.reshape(batch_label, [-1]), minlength=2)[1]
+                    if a != 0:
+                        C +=1.
+                        miou_, cm_ = Measurement(predict=final_output,
+                                            label=batch_label, 
+                                            shape=[FLAGS.img_size*FLAGS.img_size, ], 
+                                            total_classes=2).MIOU()
                     
-                    cm += cm_
+                        cm_ = tf.cast(cm_, tf.float32)
+                        cm += cm_
+                        miou += miou_
+
+                        precision = tf.math.divide_no_nan(cm_[0,0], (cm_[0,0] + cm_[1,0]))
+                        recall = tf.math.divide_no_nan(cm_[0,0], (cm_[0,0] + cm_[0,1]))
+
+                        precision_ += precision
+                        recall_ += recall
+                        f1_score_ += tf.math.divide_no_nan((2*precision*recall), (precision + recall))
 
             iou = cm[0,0]/(cm[0,0] + cm[0,1] + cm[1,0])
             precision_ = cm[0,0] / (cm[0,0] + cm[1,0])
             recall_ = cm[0,0] / (cm[0,0] + cm[0,1])
             f1_score_ = (2*precision_*recall_) / (precision_ + recall_)
-            print("train mIoU = %.4f, train F1_score = %.4f, train sensitivity(recall) = %.4f, train precision = %.4f" % (iou,
-                                                                                                                        f1_score_,
-                                                                                                                        recall_,
-                                                                                                                        precision_))
+            print("train mIoU = %.4f, train F1_score = %.4f, train sensitivity(recall) = %.4f, train precision = %.4f" % (miou / C,
+                                                                                                                        f1_score_ / C,
+                                                                                                                        recall_ / C,
+                                                                                                                        precision_ / C))
             output_text.write("Epoch: ")
             output_text.write(str(epoch))
             output_text.write("===================================================================")
@@ -346,7 +364,13 @@ def main():
 
 
             val_iter = iter(val_ge)
+            iou = 0.
+            precision_ = 0.
+            recall_ = 0.
+            f1_score_ = 0.
+            C = 0.
             cm = 0.
+            miou = 0.
             for i in range(len(val_img_dataset)):
                 batch_images, batch_labels = next(val_iter)
                 batch_labels = tf.where(batch_labels == 255, 1, batch_labels).numpy()
@@ -367,21 +391,33 @@ def main():
                 batch_label = np.where(batch_label == 0, 1, 0)
                 batch_label = np.array(batch_label, np.int32)
 
-                cm_ = Measurement(predict=final_output,
-                                    label=batch_label, 
-                                    shape=[FLAGS.img_size*FLAGS.img_size, ], 
-                                    total_classes=2).MIOU()
+                a = np.bincount(np.reshape(batch_label, [-1]), minlength=2)[1]
+                if a != 0:
+                    C +=1.
+                    miou_, cm_ = Measurement(predict=final_output,
+                                        label=batch_label, 
+                                        shape=[FLAGS.img_size*FLAGS.img_size, ], 
+                                        total_classes=2).MIOU()
                     
-                cm += cm_
+                    cm_ = tf.cast(cm_, tf.float32)
+                    cm += cm_
+                    miou += miou_
+
+                    precision = tf.math.divide_no_nan(cm_[0,0], (cm_[0,0] + cm_[1,0]))
+                    recall = tf.math.divide_no_nan(cm_[0,0], (cm_[0,0] + cm_[0,1]))
+
+                    precision_ += precision
+                    recall_ += recall
+                    f1_score_ += tf.math.divide_no_nan((2*precision*recall), (precision + recall))
 
             iou = cm[0,0]/(cm[0,0] + cm[0,1] + cm[1,0])
             precision_ = cm[0,0] / (cm[0,0] + cm[1,0])
             recall_ = cm[0,0] / (cm[0,0] + cm[0,1])
             f1_score_ = (2*precision_*recall_) / (precision_ + recall_)
-            print("val mIoU = %.4f, val F1_score = %.4f, val sensitivity(recall) = %.4f, val precision = %.4f" % (iou,
-                                                                                                                f1_score_,
-                                                                                                                recall_,
-                                                                                                                precision_))
+            print("val mIoU = %.4f, val F1_score = %.4f, val sensitivity(recall) = %.4f, val precision = %.4f" % (miou / C,
+                                                                                                                f1_score_ / C,
+                                                                                                                recall_ / C,
+                                                                                                                precision_ / C))
 
             output_text.write("val IoU: ")
             output_text.write("%.4f" % (iou ))
@@ -394,7 +430,13 @@ def main():
             output_text.write("\n")
 
             test_iter = iter(test_ge)
+            iou = 0.
+            precision_ = 0.
+            recall_ = 0.
+            f1_score_ = 0.
+            C = 0.
             cm = 0.
+            miou = 0.
             for i in range(len(test_img_dataset)):
                 batch_images, batch_labels = next(test_iter)
                 batch_labels = tf.where(batch_labels == 255, 1, batch_labels).numpy()
@@ -415,21 +457,33 @@ def main():
                 batch_label = np.where(batch_label == 0, 1, 0)
                 batch_label = np.array(batch_label, np.int32)
 
-                cm_ = Measurement(predict=final_output,
-                                    label=batch_label, 
-                                    shape=[FLAGS.img_size*FLAGS.img_size, ], 
-                                    total_classes=2).MIOU()
+                a = np.bincount(np.reshape(batch_label, [-1]), minlength=2)[1]
+                if a != 0:
+                    C +=1.
+                    miou_, cm_ = Measurement(predict=final_output,
+                                        label=batch_label, 
+                                        shape=[FLAGS.img_size*FLAGS.img_size, ], 
+                                        total_classes=2).MIOU()
                     
-                cm += cm_
+                    cm_ = tf.cast(cm_, tf.float32)
+                    cm += cm_
+                    miou += miou_
+
+                    precision = tf.math.divide_no_nan(cm_[0,0], (cm_[0,0] + cm_[1,0]))
+                    recall = tf.math.divide_no_nan(cm_[0,0], (cm_[0,0] + cm_[0,1]))
+
+                    precision_ += precision
+                    recall_ += recall
+                    f1_score_ += tf.math.divide_no_nan((2*precision*recall), (precision + recall))
 
             iou = cm[0,0]/(cm[0,0] + cm[0,1] + cm[1,0])
             precision_ = cm[0,0] / (cm[0,0] + cm[1,0])
             recall_ = cm[0,0] / (cm[0,0] + cm[0,1])
             f1_score_ = (2*precision_*recall_) / (precision_ + recall_)
-            print("test mIoU = %.4f, test F1_score = %.4f, test sensitivity(recall) = %.4f, test precision = %.4f" % (iou,
-                                                                                                                    f1_score_,
-                                                                                                                    recall_,
-                                                                                                                    precision_))
+            print("test mIoU = %.4f, test F1_score = %.4f, test sensitivity(recall) = %.4f, test precision = %.4f" % (miou / C,
+                                                                                                                    f1_score_ / C,
+                                                                                                                    recall_ / C,
+                                                                                                                    precision_ / C))
             output_text.write("test IoU: ")
             output_text.write("%.4f" % (iou))
             output_text.write(", test F1_score: ")
@@ -451,6 +505,96 @@ def main():
             ckpt_dir = model_dir + "/marine_{}.ckpt".format(epoch)
             ckpt.save(ckpt_dir)
 
+    else:
+        test_list = np.loadtxt(FLAGS.test_txt_path, dtype="<U200", skiprows=0, usecols=0)
 
+        test_img_dataset = [FLAGS.image_path + data + ".jpg" for data in test_list]
+        test_lab_dataset = [FLAGS.label_path + data + ".png" for data in test_list]
+
+        test_ge = tf.data.Dataset.from_tensor_slices((test_img_dataset, test_lab_dataset))
+        test_ge = test_ge.map(test_func)
+        test_ge = test_ge.batch(1)
+        test_ge = test_ge.prefetch(tf.data.experimental.AUTOTUNE)
+
+        test_iter = iter(test_ge)
+        iou = 0.
+        precision_ = 0.
+        recall_ = 0.
+        f1_score_ = 0.
+        C = 0.
+        cm = 0.
+        miou = 0.
+        for i in range(len(test_img_dataset)):
+            batch_images, batch_labels = next(test_iter)
+            batch_labels = tf.where(batch_labels == 255, 1, batch_labels).numpy()
+            background_logits, object_logits = run_model(model, batch_images, False)
+            temp_background_logits = tf.nn.sigmoid(object_logits) * background_logits
+            temp_object_logits = tf.nn.sigmoid(background_logits) * object_logits
+            background_logits = tf.nn.sigmoid(background_logits[0, :, :, 0])
+            object_logits = tf.nn.sigmoid(object_logits[0, :, :, 0])
+
+            b_logits = tf.where(background_logits >= 0.5, 1, 0)
+            o_logits = tf.where(object_logits >= 0.5, 1, 0)
+
+            final_output = o_logits + b_logits
+            final_output = tf.where(final_output == 2, 1, 0)
+
+            pred_mask_color = color_map[final_output]
+
+            final_output = tf.where(final_output == 0, 1, 0).numpy()
+
+            batch_label = tf.cast(batch_labels[0, :, :, 0], tf.uint8).numpy()
+            batch_label = np.where(batch_label == 0, 1, 0)
+            batch_label = np.array(batch_label, np.int32)
+
+            a = np.bincount(np.reshape(batch_label, [-1]), minlength=2)[1]
+            if a != 0:
+                C +=1.
+                miou_, cm_ = Measurement(predict=final_output,
+                                    label=batch_label, 
+                                    shape=[FLAGS.img_size*FLAGS.img_size, ], 
+                                    total_classes=2).MIOU()
+
+                cm_ = tf.cast(cm_, tf.float32)
+                cm += cm_
+                miou += miou_
+
+                precision = tf.math.divide_no_nan(cm_[0,0], (cm_[0,0] + cm_[1,0]))
+                recall = tf.math.divide_no_nan(cm_[0,0], (cm_[0,0] + cm_[0,1]))
+
+                precision_ += precision
+                recall_ += recall
+                f1_score_ += tf.math.divide_no_nan((2*precision*recall), (precision + recall))
+
+            plt.imsave("C:/Users/Yuhwan/Downloads/t/" + test_img_dataset[i].split('/')[-1], pred_mask_color)
+
+        iou = cm[0,0]/(cm[0,0] + cm[0,1] + cm[1,0])
+        print("test mIoU = %.4f, test F1_score = %.4f, test sensitivity(recall) = %.4f, test precision = %.4f" % (miou / C,
+                                                                                                                f1_score_ / C,
+                                                                                                                recall_ / C,
+                                                                                                                precision_ / C))
+        print(miou / C)
+
+
+
+
+        #    a = np.bincount(np.reshape(batch_label, [-1]), minlength=2)[1]
+        #    if a != 0:
+        #        C +=1.
+        #        cm = Measurement(predict=final_output,
+        #                            label=batch_label, 
+        #                            shape=[FLAGS.img_size*FLAGS.img_size, ], 
+        #                            total_classes=2).MIOU()
+        #        cm = tf.cast(cm, tf.float32)
+        #        iou += tf.math.divide_no_nan(cm[0,0], (cm[0,0] + cm[0,1] + cm[1,0]))
+        #        precision_ += tf.math.divide_no_nan(cm[0,0], (cm[0,0] + cm[1,0]))
+        #        recall_ += tf.math.divide_no_nan(cm[0,0], (cm[0,0] + cm[0,1]))
+
+        #f1_score = tf.math.divide_no_nan((2*(precision_ / C)*(recall_ / C)), ((precision_ / C) + (recall_ / C)))
+        #print("test mIoU = %.4f, test F1_score = %.4f, test sensitivity(recall) = %.4f, test precision = %.4f" % (iou / C,
+        #                                                                                                        f1_score,
+        #                                                                                                        recall_ / C,
+        #                                                                                                        precision_ / C))
+        print(C)
 if __name__ == "__main__":
     main()
