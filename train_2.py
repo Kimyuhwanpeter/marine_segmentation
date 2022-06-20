@@ -23,7 +23,7 @@ FLAGS = easydict.EasyDict({"img_size": 352,
                            
                            "pre_checkpoint": False,
                            
-                           "pre_checkpoint_path": "/yuhwan/yuhwan/checkpoint/Segmenation/MTS_CNN_related/CWFID_v1/checkpoint/270",
+                           "pre_checkpoint_path": "/yuhwan/Edisk/yuhwan/Edisk/Segmentation/6th_paper/proposed_method/Apple_A/checkpoint/398",
                            
                            "lr": 0.0001,
 
@@ -249,7 +249,9 @@ def cal_loss(model, images, labels, object_buf, bin):
         batch_labels = tf.cast(batch_labels, tf.float32)
         background_logits, object_logits = run_model(model, images, True)
         temp_background_logits = tf.nn.sigmoid(object_logits) * background_logits
+        temp_background_logits = (tf.keras.layers.AvgPool2D((32, 32), strides=1, padding="same")(tf.cast(temp_background_logits, tf.float32)) - tf.cast(object_logits, tf.float32))
         temp_object_logits = tf.nn.sigmoid(background_logits) * object_logits
+        temp_object_logits = (tf.keras.layers.AvgPool2D((32, 32), strides=1, padding="same")(tf.cast(temp_object_logits, tf.float32)) - tf.cast(background_logits, tf.float32))
         object_logits = temp_object_logits
         background_logits = temp_background_logits
         b_logits = tf.reshape(background_logits, [-1, ])
@@ -357,7 +359,9 @@ def main():
                 if count % 100 == 0:
                     background_logits, object_logits = run_model(model, batch_images, False)
                     temp_background_logits = tf.nn.sigmoid(object_logits) * background_logits
+                    temp_background_logits = (tf.keras.layers.AvgPool2D((32, 32), strides=1, padding="same")(tf.cast(temp_background_logits, tf.float32)) - tf.cast(object_logits, tf.float32))
                     temp_object_logits = tf.nn.sigmoid(background_logits) * object_logits
+                    temp_object_logits = (tf.keras.layers.AvgPool2D((32, 32), strides=1, padding="same")(tf.cast(temp_object_logits, tf.float32)) - tf.cast(background_logits, tf.float32))
 
                     background_logits = tf.nn.sigmoid(temp_background_logits[:, :, :, 0])
                     object_logits = tf.nn.sigmoid(temp_object_logits[:, :, :, 0])
@@ -395,7 +399,9 @@ def main():
                     batch_image = tf.expand_dims(batch_images[j], 0)
                     background_logits, object_logits = run_model(model, batch_image, False)
                     temp_background_logits = tf.nn.sigmoid(object_logits) * background_logits
+                    temp_background_logits = (tf.keras.layers.AvgPool2D((32, 32), strides=1, padding="same")(tf.cast(temp_background_logits, tf.float32)) - tf.cast(object_logits, tf.float32))
                     temp_object_logits = tf.nn.sigmoid(background_logits) * object_logits
+                    temp_object_logits = (tf.keras.layers.AvgPool2D((32, 32), strides=1, padding="same")(tf.cast(temp_object_logits, tf.float32)) - tf.cast(background_logits, tf.float32))
                     background_logits = tf.nn.sigmoid(temp_background_logits[0, :, :, 0])
                     object_logits = tf.nn.sigmoid(temp_object_logits[0, :, :, 0])
 
@@ -463,9 +469,11 @@ def main():
                 batch_labels = tf.where(batch_labels == 255, 1, batch_labels).numpy()
                 background_logits, object_logits = run_model(model, batch_images, False)
                 temp_background_logits = tf.nn.sigmoid(object_logits) * background_logits
+                temp_background_logits = (tf.keras.layers.AvgPool2D((32, 32), strides=1, padding="same")(tf.cast(temp_background_logits, tf.float32)) - tf.cast(object_logits, tf.float32))
                 temp_object_logits = tf.nn.sigmoid(background_logits) * object_logits
-                background_logits = tf.nn.sigmoid(background_logits[0, :, :, 0])
-                object_logits = tf.nn.sigmoid(object_logits[0, :, :, 0])
+                temp_object_logits = (tf.keras.layers.AvgPool2D((32, 32), strides=1, padding="same")(tf.cast(temp_object_logits, tf.float32)) - tf.cast(background_logits, tf.float32))
+                background_logits = tf.nn.sigmoid(temp_background_logits[0, :, :, 0])
+                object_logits = tf.nn.sigmoid(temp_object_logits[0, :, :, 0])
 
                 b_logits = tf.where(background_logits >= 0.5, 1, 0)
                 b_logits = tf.where(b_logits == 1, 0, 1)
@@ -527,9 +535,11 @@ def main():
                 batch_labels = tf.where(batch_labels == 255, 1, batch_labels).numpy()
                 background_logits, object_logits = run_model(model, batch_images, False)
                 temp_background_logits = tf.nn.sigmoid(object_logits) * background_logits
+                temp_background_logits = (tf.keras.layers.AvgPool2D((32, 32), strides=1, padding="same")(tf.cast(temp_background_logits, tf.float32)) - tf.cast(object_logits, tf.float32))
                 temp_object_logits = tf.nn.sigmoid(background_logits) * object_logits
-                background_logits = tf.nn.sigmoid(background_logits[0, :, :, 0])
-                object_logits = tf.nn.sigmoid(object_logits[0, :, :, 0])
+                temp_object_logits = (tf.keras.layers.AvgPool2D((32, 32), strides=1, padding="same")(tf.cast(temp_object_logits, tf.float32)) - tf.cast(background_logits, tf.float32))
+                background_logits = tf.nn.sigmoid(temp_background_logits[0, :, :, 0])
+                object_logits = tf.nn.sigmoid(temp_object_logits[0, :, :, 0])
 
                 b_logits = tf.where(background_logits >= 0.5, 1, 0)
                 b_logits = tf.where(b_logits == 1, 0, 1)
