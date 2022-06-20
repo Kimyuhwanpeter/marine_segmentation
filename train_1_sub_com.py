@@ -35,7 +35,7 @@ FLAGS = easydict.EasyDict({"img_size": 352,
 
                            "ignore_label": 0,
 
-                           "batch_size": 10,
+                           "batch_size": 9,
 
                            "sample_images": "/yuhwan/Edisk/yuhwan/Edisk/Segmentation/6th_paper/proposed_method/Apple_A/sample_images",
 
@@ -241,8 +241,8 @@ def cal_loss(model, model2, images, labels, object_buf, bin):
             background_loss = false_dice_loss(batch_labels, b_logits) * object_buf[0]
             total_loss = background_loss
 
-    grads2 = tape.gradient(total_loss, model.trainable_variables)
-    optim2.apply_gradients(zip(grads2, model.trainable_variables))
+    grads2 = tape2.gradient(total_loss, model2.trainable_variables)
+    optim2.apply_gradients(zip(grads2, model2.trainable_variables))
     
     return total_loss
 
