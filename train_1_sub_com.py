@@ -35,7 +35,7 @@ FLAGS = easydict.EasyDict({"img_size": 352,
 
                            "ignore_label": 0,
 
-                           "batch_size": 9,
+                           "batch_size": 8,
 
                            "sample_images": "/yuhwan/Edisk/yuhwan/Edisk/Segmentation/6th_paper/proposed_method/Apple_A/sample_images",
 
