@@ -204,9 +204,9 @@ def parallel_Unet(input_shape=(352, 352, 3), nclasses=1):
     model = tf.keras.Model(inputs=inputs, outputs=[background_output, object_output])
     
     backbone = tf.keras.applications.vgg16.VGG16(input_shape=(224, 224, 3))
-    object_model = Unet(input_shape=(512, 512, 3), classes=1, decoder_block_type="transpose")
+    # object_model = Unet(input_shape=(512, 512, 3), classes=1, decoder_block_type="transpose")
     #object_model.summary()
-    object_model.load_weights('C:/Users/Yuhwan/Downloads/model_object.h5')  # 디버깅 해보고 이거 되면, object model에 weight 넣자
+    # object_model.load_weights('C:/Users/Yuhwan/Downloads/model_object.h5')  # 디버깅 해보고 이거 되면, object model에 weight 넣자
     
     model.get_layer('block1_conv1').set_weights(backbone.get_layer('block1_conv1').get_weights())
     model.get_layer('block1_conv1_f').set_weights(backbone.get_layer('block1_conv1').get_weights())
@@ -251,8 +251,8 @@ def parallel_Unet(input_shape=(352, 352, 3), nclasses=1):
 def parallel_Unet_2(input_shape=(352, 352, 3), nclasses=1):
 
     h = inputs = tf.keras.Input(input_shape)
-    h_1 = inputs_1 = tf.keras.Input(input_shape)
-    h_1_f = inputs_1_f = tf.keras.Input(input_shape)
+    h_1 = inputs_1 = tf.keras.Input((input_shape[0], input_shape[1], 1))
+    h_1_f = inputs_1_f = tf.keras.Input((input_shape[0], input_shape[1], 1))
 
     h_1 = conv_relu(h * tf.nn.sigmoid(h_1), 64, 'block1_conv1')
     h_1 = conv(h_1 * tf.nn.sigmoid(h_1_f), 64, 'block1_conv2')
@@ -434,9 +434,9 @@ def parallel_Unet_2(input_shape=(352, 352, 3), nclasses=1):
     model = tf.keras.Model(inputs=[inputs, inputs_1, inputs_1_f], outputs=[background_output, object_output])
     
     backbone = tf.keras.applications.vgg16.VGG16(input_shape=(224, 224, 3))
-    object_model = Unet(input_shape=(512, 512, 3), classes=1, decoder_block_type="transpose")
+    # object_model = Unet(input_shape=(512, 512, 3), classes=1, decoder_block_type="transpose")
     #object_model.summary()
-    object_model.load_weights('C:/Users/Yuhwan/Downloads/model_object.h5')  # 디버깅 해보고 이거 되면, object model에 weight 넣자
+    # object_model.load_weights('C:/Users/Yuhwan/Downloads/model_object.h5')  # 디버깅 해보고 이거 되면, object model에 weight 넣자
     
     model.get_layer('block1_conv1').set_weights(backbone.get_layer('block1_conv1').get_weights())
     model.get_layer('block1_conv1_f').set_weights(backbone.get_layer('block1_conv1').get_weights())
