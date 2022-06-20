@@ -250,12 +250,13 @@ def main():
     tf.keras.backend.clear_session()
 
     model = parallel_Unet(input_shape=(FLAGS.img_size, FLAGS.img_size, 3), nclasses=1)
+    model2 = parallel_Unet_2(input_shape=(FLAGS.img_size, FLAGS.img_size, 3), nclasses=1)
     prob = model_profiler(model, FLAGS.batch_size)
     model.summary()
     print(prob)
 
     if FLAGS.pre_checkpoint:
-        ckpt = tf.train.Checkpoint(model=model, optim=optim)
+        ckpt = tf.train.Checkpoint(model=model, model2=model2, optim=optim, optim2=optim2)
         ckpt_manager = tf.train.CheckpointManager(ckpt, FLAGS.pre_checkpoint_path, 5)
 
         if ckpt_manager.latest_checkpoint:
@@ -332,8 +333,11 @@ def main():
                     temp_background_logits = tf.nn.sigmoid(object_logits) * background_logits
                     temp_object_logits = tf.nn.sigmoid(background_logits) * object_logits
 
-                    background_logits = tf.nn.sigmoid(temp_background_logits[:, :, :, 0])
-                    object_logits = tf.nn.sigmoid(temp_object_logits[:, :, :, 0])
+                    background_logits, object_logits = run_model(model2, [batch_images, temp_background_logits, temp_object_logits], False)
+                    temp_background_logits = tf.nn.sigmoid(object_logits) * background_logits
+                    temp_object_logits = tf.nn.sigmoid(background_logits) * object_logits
+                    background_logits = tf.nn.sigmoid(temp_background_logits[:, :, :, :])
+                    object_logits = tf.nn.sigmoid(temp_object_logits[:, :, :, :])
 
                     for i in range(FLAGS.batch_size):
                         label = tf.cast(batch_labels[i], tf.int32).numpy()
@@ -368,6 +372,11 @@ def main():
                     background_logits, object_logits = run_model(model, batch_image, False)
                     temp_background_logits = tf.nn.sigmoid(object_logits) * background_logits
                     temp_object_logits = tf.nn.sigmoid(background_logits) * object_logits
+
+                    background_logits, object_logits = run_model(model2, [batch_images, temp_background_logits, temp_object_logits], False)
+                    temp_background_logits = tf.nn.sigmoid(object_logits) * background_logits
+                    temp_object_logits = tf.nn.sigmoid(background_logits) * object_logits
+
                     background_logits = tf.nn.sigmoid(temp_background_logits[0, :, :, 0])
                     object_logits = tf.nn.sigmoid(temp_object_logits[0, :, :, 0])
 
@@ -435,6 +444,11 @@ def main():
                 background_logits, object_logits = run_model(model, batch_images, False)
                 temp_background_logits = tf.nn.sigmoid(object_logits) * background_logits
                 temp_object_logits = tf.nn.sigmoid(background_logits) * object_logits
+
+                background_logits, object_logits = run_model(model2, [batch_images, temp_background_logits, temp_object_logits], False)
+                temp_background_logits = tf.nn.sigmoid(object_logits) * background_logits
+                temp_object_logits = tf.nn.sigmoid(background_logits) * object_logits
+
                 background_logits = tf.nn.sigmoid(temp_background_logits[0, :, :, 0])
                 object_logits = tf.nn.sigmoid(temp_object_logits[0, :, :, 0])
 
@@ -498,6 +512,11 @@ def main():
                 background_logits, object_logits = run_model(model, batch_images, False)
                 temp_background_logits = tf.nn.sigmoid(object_logits) * background_logits
                 temp_object_logits = tf.nn.sigmoid(background_logits) * object_logits
+
+                background_logits, object_logits = run_model(model2, [batch_images, temp_background_logits, temp_object_logits], False)
+                temp_background_logits = tf.nn.sigmoid(object_logits) * background_logits
+                temp_object_logits = tf.nn.sigmoid(background_logits) * object_logits
+
                 background_logits = tf.nn.sigmoid(temp_background_logits[0, :, :, 0])
                 object_logits = tf.nn.sigmoid(temp_object_logits[0, :, :, 0])
 
