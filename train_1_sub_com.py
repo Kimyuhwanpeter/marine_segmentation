@@ -23,7 +23,7 @@ FLAGS = easydict.EasyDict({"img_size": 352,
                            
                            "pre_checkpoint": False,
                            
-                           "pre_checkpoint_path": "/yuhwan/yuhwan/checkpoint/Segmenation/6th_paper/Apple_A/checkpoint/62",
+                           "pre_checkpoint_path": "/yuhwan/Edisk/yuhwan/Edisk/Segmentation/6th_paper/proposed_method/Apple_A/checkpoint/398",
                            
                            "lr": 0.0001,
 
@@ -37,11 +37,11 @@ FLAGS = easydict.EasyDict({"img_size": 352,
 
                            "batch_size": 10,
 
-                           "sample_images": "/yuhwan/yuhwan/checkpoint/Segmenation/6th_paper/Apple_A/sample_images",
+                           "sample_images": "/yuhwan/Edisk/yuhwan/Edisk/Segmentation/6th_paper/proposed_method/Apple_A/sample_images",
 
-                           "save_checkpoint": "/yuhwan/yuhwan/checkpoint/Segmenation/6th_paper/Apple_A/checkpoint",
+                           "save_checkpoint": "/yuhwan/Edisk/yuhwan/Edisk/Segmentation/6th_paper/proposed_method/Apple_A/checkpoint",
 
-                           "save_print": "/yuhwan/yuhwan/checkpoint/Segmenation/6th_paper/Apple_A/train_out.txt",
+                           "save_print": "/yuhwan/Edisk/yuhwan/Edisk/Segmentation/6th_paper/proposed_method/Apple_A/train_out.txt",
 
                            "train_loss_graphs": "/yuwhan/Edisk/yuwhan/Edisk/Segmentation/V2/BoniRob/train_loss.txt",
 
@@ -222,7 +222,7 @@ def cal_loss(model, model2, images, labels, object_buf, bin):
     with tf.GradientTape() as tape2:
         batch_labels = tf.reshape(labels, [-1,])
         batch_labels = tf.cast(batch_labels, tf.float32)
-        background_logits, object_logits = run_model(model, [images, background_logits, object_logits], True)
+        background_logits, object_logits = run_model(model2, [images, background_logits, object_logits], True)
         temp_background_logits = tf.nn.sigmoid(object_logits) * background_logits
         temp_object_logits = tf.nn.sigmoid(background_logits) * object_logits
         object_logits = temp_object_logits
@@ -324,7 +324,7 @@ def main():
                 object_buf = (np.max(object_buf / np.sum(object_buf)) + 1 - (object_buf / np.sum(object_buf)))
                 object_buf = tf.nn.softmax(object_buf).numpy()
 
-                loss = cal_loss(model, batch_images, batch_labels, object_buf, bin)
+                loss = cal_loss(model, model2, batch_images, batch_labels, object_buf, bin)
                 if count % 10 == 0:
                     print("Epoch: {} [{}/{}] loss = {}".format(epoch, step+1, tr_idx, loss))
 
