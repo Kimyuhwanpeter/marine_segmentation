@@ -5,3 +5,6 @@ PSS-Net: Parallel Semantic Segmentation Networks for Detecting Marine Animals in
     Yu Hwan Kim and Kang Ryoung Park, “PSS-Net: Parallel Semantic Segmentation Networks for Detecting Marine Animals in an Underwater Scene,” Optics and Machine Vision for Marine Observation, in submission 
     
 <br>
+
+## More detail
+* [Click](https://github.com/Kimyuhwanpeter/PSS-Net_marine-segmentation)
