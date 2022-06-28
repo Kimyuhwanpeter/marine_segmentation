@@ -8,3 +8,4 @@ PSS-Net: Parallel Semantic Segmentation Networks for Detecting Marine Animals in
 
 ## More detail
 * [Click](https://github.com/Kimyuhwanpeter/PSS-Net_marine-segmentation)
+* [MAS3K weight](https://drive.google.com/file/d/1_w2_u_GuJ_d1UpHR-plYWZ-yB1zQTKRL/view?usp=sharing)
